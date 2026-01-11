@@ -1,115 +1,1651 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hatski Project - Plan Dilyanky 2026</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 30px; }
-        h1 { color: #333; margin-bottom: 10px; text-align: center; font-size: 32px; }
-        .subtitle { color: #666; text-align: center; margin-bottom: 30px; font-size: 14px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0; }
-        #map { height: 400px; border-radius: 8px; border: 2px solid #ddd; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #667eea; color: white; font-weight: bold; }
-        tr:hover { background: #f5f5f5; }
-        .info-box { background: #f0f4ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; }
-        .footer { text-align: center; margin-top: 30px; color: #999; font-size: 12px; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>План ділянки — інтерактивна карта</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"
+    integrity="sha512-mZVIGFz1ZL7rFQbT2vCuxnxOQk4LLx7sMMEZe2qVD/3GQ8ffNk31DJ7tY8DbDeihdj5Z8SGvtQvV4vH8C4l0Aw=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --bg-softer: #020617;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.12);
+      --accent-strong: #4ade80;
+      --border: #1f2937;
+      --border-soft: #111827;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --text-soft: #6b7280;
+      --danger: #f97373;
+      --danger-soft: rgba(248, 113, 113, 0.15);
+      --warn: #facc15;
+      --warn-soft: rgba(250, 204, 21, 0.18);
+      --info: #38bdf8;
+      --info-soft: rgba(56, 189, 248, 0.16);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 10px;
+      --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.8);
+      --shadow-subtle: 0 18px 45px rgba(15, 23, 42, 0.7);
+      --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.65);
+      --grid-line: rgba(148, 163, 184, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(
+          circle at top left,
+          rgba(56, 189, 248, 0.12),
+          transparent 60%
+        ),
+        radial-gradient(
+          circle at bottom right,
+          rgba(34, 197, 94, 0.12),
+          transparent 55%
+        ),
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 55%),
+        #020617;
+      color: var(--text-main);
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .page-wrapper {
+      width: 100%;
+      max-width: 1320px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .glass-panel {
+      background: radial-gradient(
+          circle at top left,
+          rgba(56, 189, 248, 0.22),
+          transparent 55%
+        ),
+        radial-gradient(
+          circle at bottom right,
+          rgba(34, 197, 94, 0.24),
+          transparent 60%
+        ),
+        linear-gradient(
+          135deg,
+          rgba(15, 23, 42, 0.96),
+          rgba(15, 23, 42, 0.98) 48%,
+          rgba(2, 6, 23, 0.98)
+        );
+      border-radius: 26px;
+      padding: 22px 24px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(
+          circle at 1px 1px,
+          rgba(148, 163, 184, 0.18) 0,
+          transparent 0
+        );
+      background-size: 20px 20px;
+      opacity: 0.18;
+      pointer-events: none;
+      mix-blend-mode: soft-light;
+    }
+
+    .glass-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+          circle at top left,
+          rgba(34, 197, 94, 0.18),
+          transparent 60%
+        ),
+        radial-gradient(
+          circle at bottom right,
+          rgba(56, 189, 248, 0.18),
+          transparent 60%
+        );
+      opacity: 0.16;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .glass-panel-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+
+    .header-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.6fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .title-block {
+      padding: 18px 18px 16px;
+      border-radius: 20px;
+      background: radial-gradient(
+          circle at top left,
+          rgba(34, 197, 94, 0.18),
+          transparent 60%
+        ),
+        linear-gradient(135deg, #020617, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: var(--shadow-subtle);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .title-block::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+          circle at 0 0,
+          rgba(34, 197, 94, 0.3),
+          transparent 60%
+        ),
+        radial-gradient(
+          circle at 100% 10%,
+          rgba(56, 189, 248, 0.24),
+          transparent 60%
+        );
+      opacity: 0.18;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .title-text {
+      position: relative;
+      z-index: 1;
+    }
+
+    .suptitle {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 11px;
+      color: var(--accent-strong);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px 4px 6px;
+      border-radius: 999px;
+      background: radial-gradient(
+          circle at top left,
+          rgba(34, 197, 94, 0.26),
+          transparent 60%
+        ),
+        rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(34, 197, 94, 0.55);
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 18px 35px rgba(22, 163, 74, 0.35);
+      margin-bottom: 10px;
+    }
+
+    .suptitle-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #a7f3d0, #22c55e);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.45),
+        0 0 0 8px rgba(22, 101, 52, 0.55);
+      position: relative;
+      overflow: visible;
+    }
+
+    .suptitle-dot::after {
+      content: "";
+      position: absolute;
+      inset: -4px;
+      border-radius: inherit;
+      border: 1px solid rgba(190, 242, 100, 0.9);
+      opacity: 0.7;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #f9fafb;
+    }
+
+    h1 span.highlight {
+      background: linear-gradient(135deg, #bbf7d0, #22c55e, #a5b4fc);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 13px;
+      max-width: 540px;
+    }
+
+    .title-meta {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.9);
+    }
+
+    .badge-dot-green {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #bbf7d0, #22c55e);
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.7);
+    }
+
+    .badge-dot-blue {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #e0f2fe, #38bdf8);
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.7);
+    }
+
+    .badge-label {
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .badge-value {
+      color: var(--text-soft);
+    }
+
+    .status-block {
+      padding: 18px;
+      border-radius: 18px;
+      background: radial-gradient(
+          circle at top right,
+          rgba(56, 189, 248, 0.14),
+          transparent 60%
+        ),
+        linear-gradient(145deg, #020617, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.33);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-block::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+          circle at 105% -5%,
+          rgba(37, 99, 235, 0.26),
+          transparent 60%
+        ),
+        radial-gradient(
+          circle at 0 110%,
+          rgba(16, 185, 129, 0.22),
+          transparent 60%
+        );
+      opacity: 0.2;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .status-label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #bbf7d0, #22c55e);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.7);
+    }
+
+    .status-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .status-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .status-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-soft);
+    }
+
+    .status-meta {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .status-meta-label {
+      color: var(--text-muted);
+    }
+
+    .status-meta-value {
+      color: #e5e7eb;
+    }
+
+    /* Main layout */
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.2fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .map-panel {
+      border-radius: 22px;
+      background: radial-gradient(
+          circle at top left,
+          rgba(15, 23, 42, 0.9),
+          transparent 55%
+        ),
+        linear-gradient(135deg, #020617, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .map-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.5);
+      background: radial-gradient(
+          circle at top left,
+          rgba(30, 64, 175, 0.4),
+          transparent 60%
+        ),
+        rgba(2, 6, 23, 0.98);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .map-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .map-title {
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #e5e7eb;
+    }
+
+    .map-title-chip {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(129, 140, 248, 0.8);
+      color: #a5b4fc;
+    }
+
+    .map-subtitle {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .map-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .view-toggle {
+      display: flex;
+      background: rgba(15, 23, 42, 0.92);
+      border-radius: 999px;
+      padding: 2px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.9);
+    }
+
+    .view-toggle button {
+      border: none;
+      background: transparent;
+      color: var(--text-soft);
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .view-toggle button.active {
+      background: radial-gradient(
+          circle at top left,
+          rgba(34, 197, 94, 0.45),
+          transparent 60%
+        ),
+        radial-gradient(
+          circle at bottom right,
+          rgba(37, 99, 235, 0.55),
+          transparent 60%
+        ),
+        #0b1120;
+      color: #e5e7eb;
+      border: 1px solid rgba(129, 140, 248, 0.8);
+      box-shadow: 0 0 0 1px #020617, 0 16px 40px rgba(37, 99, 235, 0.6);
+    }
+
+    .map-tag {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      color: #bae6fd;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .map-tag-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #e0f2fe, #38bdf8);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.7);
+    }
+
+    #map {
+      height: 480px;
+      width: 100%;
+      background: #020617;
+    }
+
+    .map-footer {
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid rgba(15, 23, 42, 0.8);
+      background: radial-gradient(
+          circle at bottom right,
+          rgba(15, 23, 42, 0.9),
+          transparent 60%
+        ),
+        rgba(2, 6, 23, 0.98);
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .map-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      border: 1px solid rgba(15, 23, 42, 0.8);
+    }
+
+    .swatch-plot {
+      background: linear-gradient(135deg, #22c55e, #65a30d);
+    }
+
+    .swatch-house {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+    }
+
+    .swatch-garage {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    }
+
+    .swatch-other {
+      background: linear-gradient(135deg, #a855f7, #f97316);
+    }
+
+    .map-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .map-meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+    }
+
+    .dot-muted {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #f3f4f6, #9ca3af);
+    }
+
+    /* Right column */
+
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .card {
+      border-radius: 18px;
+      padding: 14px 14px 12px;
+      background: radial-gradient(
+          circle at top left,
+          rgba(15, 23, 42, 0.9),
+          transparent 60%
+        ),
+        linear-gradient(145deg, #020617, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+          circle at 0 0,
+          rgba(34, 197, 94, 0.18),
+          transparent 60%
+        ),
+        radial-gradient(
+          circle at 100% 0,
+          rgba(59, 130, 246, 0.18),
+          transparent 60%
+        );
+      opacity: 0.18;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .card-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .card-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-muted);
+    }
+
+    .table-wrapper {
+      margin-top: 8px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      overflow: hidden;
+      background: radial-gradient(
+          circle at top left,
+          rgba(15, 23, 42, 0.9),
+          transparent 65%
+        ),
+        rgba(15, 23, 42, 0.96);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      color: var(--text-main);
+    }
+
+    thead {
+      background: linear-gradient(
+        135deg,
+        rgba(15, 23, 42, 0.98),
+        rgba(15, 23, 42, 0.9)
+      );
+    }
+
+    thead th {
+      text-align: left;
+      padding: 6px 10px;
+      border-bottom: 1px solid rgba(31, 41, 55, 1);
+      color: var(--text-soft);
+      font-weight: 500;
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(15, 23, 42, 1);
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    td {
+      padding: 6px 10px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    td.label-cell {
+      color: var(--text-soft);
+      white-space: nowrap;
+    }
+
+    td.value-cell {
+      color: #e5e7eb;
+    }
+
+    .value-highlight {
+      color: #bbf7d0;
+    }
+
+    .value-alert {
+      color: #fca5a5;
+    }
+
+    .value-muted {
+      color: var(--text-soft);
+    }
+
+    .download-grid {
+      margin-top: 6px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .download-btn {
+      border-radius: 999px;
+      padding: 6px 8px;
+      font-size: 11px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: var(--text-soft);
+      background: rgba(15, 23, 42, 0.96);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .download-btn-main {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      text-align: left;
+    }
+
+    .download-title {
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    .download-meta {
+      font-size: 10px;
+      color: var(--text-soft);
+    }
+
+    .download-icon {
+      font-size: 13px;
+      color: #a5b4fc;
+    }
+
+    .download-btn.primary {
+      border-color: rgba(34, 197, 94, 0.9);
+      background: radial-gradient(
+          circle at top left,
+          rgba(34, 197, 94, 0.3),
+          transparent 60%
+        ),
+        rgba(15, 23, 42, 0.96);
+      color: #bbf7d0;
+    }
+
+    .risk-list {
+      margin: 6px 0 0;
+      padding-left: 14px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .risk-list li {
+      margin-bottom: 2px;
+    }
+
+    /* 3D block */
+
+    .block-3d {
+      margin-top: 8px;
+      border-radius: 14px;
+      border: 1px dashed rgba(55, 65, 81, 0.8);
+      padding: 8px 9px;
+      background: radial-gradient(
+          circle at top right,
+          rgba(59, 130, 246, 0.12),
+          transparent 65%
+        ),
+        rgba(15, 23, 42, 0.96);
+      font-size: 11px;
+      color: var(--text-soft);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .block-3d-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .block-3d-title {
+      font-size: 11px;
+      color: #e5e7eb;
+      font-weight: 500;
+    }
+
+    .block-3d-meta {
+      font-size: 10px;
+    }
+
+    .block-3d-status {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(129, 140, 248, 0.8);
+      color: #a5b4fc;
+    }
+
+    /* Bottom row */
+
+    .bottom-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.7fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .notes-card {
+      border-radius: 18px;
+      padding: 14px;
+      background: radial-gradient(
+          circle at bottom left,
+          rgba(34, 197, 94, 0.18),
+          transparent 60%
+        ),
+        linear-gradient(145deg, #020617, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .notes-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+          circle at 0 100%,
+          rgba(34, 197, 94, 0.25),
+          transparent 55%
+        ),
+        radial-gradient(
+          circle at 100% 0,
+          rgba(56, 189, 248, 0.2),
+          transparent 60%
+        );
+      opacity: 0.2;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .notes-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .notes-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #e5e7eb;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .notes-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .notes-list {
+      margin: 0;
+      padding-left: 14px;
+    }
+
+    .notes-list li {
+      margin-bottom: 2px;
+    }
+
+    .grid-notes {
+      border-radius: 18px;
+      padding: 14px;
+      background: radial-gradient(
+          circle at top right,
+          rgba(56, 189, 248, 0.18),
+          transparent 60%
+        ),
+        linear-gradient(145deg, #020617, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .grid-notes-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .grid-notes-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #e5e7eb;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .grid-notes-layout {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .grid-note-block {
+      border-radius: 12px;
+      border: 1px dashed rgba(75, 85, 99, 0.9);
+      padding: 6px 8px;
+      background: rgba(15, 23, 42, 0.96);
+    }
+
+    .grid-note-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .grid-note-value {
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    .grid-note-extra {
+      font-size: 10px;
+      color: var(--text-soft);
+      margin-top: 2px;
+    }
+
+    /* Footer */
+
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--text-soft);
+      margin-top: 4px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .footer-left,
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+    }
+
+    .footer-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #bbf7d0, #22c55e);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.7);
+    }
+
+    @media (max-width: 1100px) {
+      body {
+        padding: 16px;
+      }
+
+      .header-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .main-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .bottom-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 700px) {
+      #map {
+        height: 380px;
+      }
+
+      .download-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid-notes-layout {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      #map {
+        height: 320px;
+      }
+
+      .download-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .grid-notes-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🏞️ Hatski Project</h1>
-        <p class="subtitle">Черкаська область, Черкаси | 11.01.2026</p>
-        
-        <div class="info-box">
-            <strong>📌 Проект:</strong> Демонстрація Git та GitHub Desktop з візуалізацією地даних<br>
-            <strong>📍 Локація:</strong> Черкаська область, Черкаси<br>
-            <strong>👤 Автор:</strong> OlehCheff
-        </div>
-        
-        <div class="grid">
-            <div>
-                <h2>Карта регіону</h2>
-                <div id="map"></div>
+  <div class="page-wrapper">
+    <section class="glass-panel">
+      <div class="glass-panel-inner">
+        <!-- Header -->
+        <div class="header-grid">
+          <div class="title-block">
+            <div class="title-text">
+              <div class="suptitle">
+                <span class="suptitle-dot"></span>
+                ПЛАН ПРИВАТНОЇ ДІЛЯНКИ
+              </div>
+              <h1>
+                Інтерактивна схема
+                <span class="highlight">будинку, гаража та ділянки</span>
+              </h1>
+              <p class="subtitle">
+                Візуалізація конфігурації земельної ділянки, розташування житлового будинку, гаража, септика, дерев та
+                в’їзду з прив’язкою до координат і ухилу рельєфу.
+              </p>
+
+              <div class="title-meta">
+                <div class="badge">
+                  <span class="badge-dot-green"></span>
+                  <span class="badge-label">Статус</span>
+                  <span class="badge-value">Проект в роботі (план уточнюється)</span>
+                </div>
+
+                <div class="badge">
+                  <span class="badge-dot-blue"></span>
+                  <span class="badge-label">Формат</span>
+                  <span class="badge-value">Інтерактивна карта + таблиці характеристик</span>
+                </div>
+              </div>
             </div>
-            <div>
-                <h2>Інформація про проект</h2>
-                <table>
-                    <tr>
+          </div>
+
+          <aside class="status-block">
+            <div class="status-label">
+              <span class="status-pulse"></span>
+              ТЕХНІЧНІ ПАРАМЕТРИ
+            </div>
+            <div class="status-main">
+              <div class="status-title">Умовні параметри ділянки</div>
+              <div class="status-tag">Наближені значення, без юр. сили</div>
+            </div>
+            <div class="status-meta">
+              <div>
+                <div class="status-meta-label">Орієнтовна площа ділянки</div>
+                <div class="status-meta-value">~0,10 га (1000 м²)</div>
+              </div>
+              <div>
+                <div class="status-meta-label">Основні об’єкти</div>
+                <div class="status-meta-value">Будинок, гараж, септик, в’їзд, дерева</div>
+              </div>
+              <div>
+                <div class="status-meta-label">Тип розташування</div>
+                <div class="status-meta-value">Приватна забудова, ухил рельєфу</div>
+              </div>
+              <div>
+                <div class="status-meta-label">Призначення схеми</div>
+                <div class="status-meta-value">Візуалізація, обговорення, планування</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <!-- Main layout -->
+        <div class="main-layout" style="margin-top: 16px;">
+          <!-- Map -->
+          <section class="map-panel">
+            <header class="map-header">
+              <div class="map-title-block">
+                <div class="map-title">
+                  План ділянки на базі Leaflet
+                  <span class="map-title-chip">GeoJSON / OSM / XYZ</span>
+                </div>
+                <div class="map-subtitle">
+                  Масштабована карта з контурами ділянки, будинку, гаража, септика та допоміжних елементів.
+                </div>
+              </div>
+              <div class="map-controls">
+                <div class="view-toggle">
+                  <button class="active" type="button">
+                    ◻ 2D-план
+                  </button>
+                  <button type="button">
+                    ◼ 3D-вид (зарезервовано)
+                  </button>
+                </div>
+                <div class="map-tag">
+                  <span class="map-tag-dot"></span>
+                  Координати з GPS / веб-карт
+                </div>
+              </div>
+            </header>
+
+            <div id="map"></div>
+
+            <footer class="map-footer">
+              <div class="map-legend">
+                <div class="legend-item">
+                  <span class="legend-swatch swatch-plot"></span>
+                  Ділянка (контур)
+                </div>
+                <div class="legend-item">
+                  <span class="legend-swatch swatch-house"></span>
+                  Будинок (контур)
+                </div>
+                <div class="legend-item">
+                  <span class="legend-swatch swatch-garage"></span>
+                  Гараж / хоз. будівля
+                </div>
+                <div class="legend-item">
+                  <span class="legend-swatch swatch-other"></span>
+                  Технічні об’єкти, дерева, в’їзди
+                </div>
+              </div>
+
+              <div class="map-meta">
+                <div class="map-meta-item">
+                  <span class="dot-muted"></span>
+                  Орієнтація по сторонах світу
+                </div>
+                <div class="map-meta-item">
+                  <span class="dot-muted"></span>
+                  Масштаб залежно від діагоналі екрану
+                </div>
+              </div>
+            </footer>
+          </section>
+
+          <!-- Side panel: будинок, гараж, завантаження -->
+          <aside class="side-panel">
+            <!-- Будинок -->
+            <section class="card">
+              <div class="card-inner">
+                <header class="card-header">
+                  <div class="card-title-block">
+                    <div class="card-title">
+                      Будинок
+                    </div>
+                    <div class="card-subtitle">
+                      Орієнтовні габарити та підтверджені параметри будинку (для візуалізації).
+                    </div>
+                  </div>
+                  <div class="card-badge">Основний об’єкт</div>
+                </header>
+
+                <div class="table-wrapper">
+                  <table>
+                    <thead>
+                      <tr>
                         <th>Параметр</th>
                         <th>Значення</th>
-                    </tr>
-                    <tr>
-                        <td>Дата запуску</td>
-                        <td>11.01.2026</td>
-                    </tr>
-                    <tr>
-                        <td>Статус</td>
-                        <td>✅ Активний</td>
-                    </tr>
-                    <tr>
-                        <td>Регіон</td>
-                        <td>Черкаська область</td>
-                    </tr>
-                    <tr>
-                        <td>Город</td>
-                        <td>Черкаси</td>
-                    </tr>
-                    <tr>
-                        <td>Версія</td>
-                        <td>1.0.0</td>
-                    </tr>
-                </table>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="label-cell">Орієнтовна площа забудови</td>
+                        <td class="value-cell value-highlight">~90–120 м² (по контуру стін)</td>
+                      </tr>
+                      <tr>
+                        <td class="label-cell">Поверховість</td>
+                        <td class="value-cell">1 поверх (з можливим горищем / мансардою)</td>
+                      </tr>
+                      <tr>
+                        <td class="label-cell">Форма в плані</td>
+                        <td class="value-cell">Прямокутна / наближено-прямокутна</td>
+                      </tr>
+                      <tr>
+                        <td class="label-cell">Відступи від меж ділянки</td>
+                        <td class="value-cell">Умовні, для планування; не є проектною документацією</td>
+                      </tr>
+                      <tr>
+                        <td class="label-cell">Примітка</td>
+                        <td class="value-cell value-muted">
+                          Для юридично значущих дій потрібні офіційні креслення та
+                          технічний паспорт.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <!-- Гараж / хоз-блок -->
+            <section class="card">
+              <div class="card-inner">
+                <header class="card-header">
+                  <div class="card-title-block">
+                    <div class="card-title">
+                      Гараж / господарська будівля
+                    </div>
+                    <div class="card-subtitle">
+                      Розташування відносно будинку та в’їзду, орієнтовні розміри та призначення.
+                    </div>
+                  </div>
+                  <div class="card-badge">Допоміжний об’єкт</div>
+                </header>
+
+                <div class="table-wrapper">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Параметр</th>
+                        <th>Значення</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="label-cell">Призначення</td>
+                        <td class="value-cell">Гараж / майстерня / хоз. блок</td>
+                      </tr>
+                      <tr>
+                        <td class="label-cell">Орієнтовна площа</td>
+                        <td class="value-cell value-highlight">~20–35 м²</td>
+                      </tr>
+                      <tr>
+                        <td class="label-cell">Розташування</td>
+                        <td class="value-cell">
+                          Ближче до в’їзду на ділянку (для зручності заїзду авто).
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="label-cell">Зв’язок з будинком</td>
+                        <td class="value-cell">
+                          Окрема будівля, без жорсткого прив’язування до фундаменту будинку.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="label-cell">Примітка</td>
+                        <td class="value-cell value-muted">
+                          Геометрія на карті допоміжна, для візуального розуміння розміщення.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <!-- Завантаження / 3D -->
+            <section class="card">
+              <div class="card-inner">
+                <header class="card-header">
+                  <div class="card-title-block">
+                    <div class="card-title">
+                      Експорт та 3D (резерв)
+                    </div>
+                    <div class="card-subtitle">
+                      Сервісні функції: вивантаження даних та майбутня 3D-візуалізація.
+                    </div>
+                  </div>
+                  <div class="card-badge">Службовий блок</div>
+                </header>
+
+                <div class="download-grid">
+                  <button class="download-btn primary" type="button">
+                    <div class="download-btn-main">
+                      <span class="download-title">Експорт в PDF</span>
+                      <span class="download-meta">План ділянки з таблицями</span>
+                    </div>
+                    <span class="download-icon">⤓</span>
+                  </button>
+
+                  <button class="download-btn" type="button">
+                    <div class="download-btn-main">
+                      <span class="download-title">GeoJSON</span>
+                      <span class="download-meta">Полігони ділянки та об’єктів</span>
+                    </div>
+                    <span class="download-icon">{} </span>
+                  </button>
+
+                  <button class="download-btn" type="button">
+                    <div class="download-btn-main">
+                      <span class="download-title">KML / GPX</span>
+                      <span class="download-meta">Для навігаторів та GIS</span>
+                    </div>
+                    <span class="download-icon">🗺</span>
+                  </button>
+                </div>
+
+                <ul class="risk-list">
+                  <li>Кнопки поки що декоративні; логіка експорту не підключена.</li>
+                  <li>При фіналізації плану можна додати генерацію PDF та завантаження файлів.</li>
+                </ul>
+
+                <div class="block-3d">
+                  <div class="block-3d-main">
+                    <div class="block-3d-title">3D-візуалізація (three.js / WebGL)</div>
+                    <div class="block-3d-meta">
+                      Зарезервоване місце під об’ємну модель будинку та ділянки.
+                      <br />Ширина/висота блоку можуть бути адаптовані під ескіз в перспективі.
+                    </div>
+                  </div>
+                  <div class="block-3d-status">
+                    Статус: заплановано (без реалізації)
+                  </div>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+
+        <!-- Bottom row: ухил, заміри, застереження -->
+        <div class="bottom-layout" style="margin-top: 18px;">
+          <section class="notes-card">
+            <div class="notes-inner">
+              <div class="notes-title">
+                Ухил рельєфу та орієнтовні висоти
+              </div>
+              <div class="notes-body">
+                <p>
+                  Умовний ухил ділянки врахований за різницею відміток між верхньою і нижньою частинами (за супутниковими та
+                  картографічними сервісами).
+                </p>
+                <ul class="notes-list">
+                  <li>Ухил потрібен для розуміння відводу води, розміщення септика та імовірного розподілу стоків.</li>
+                  <li>Цифри носять орієнтовний характер та не є геодезичною зйомкою.</li>
+                  <li>Для реального будівництва/реконструкції потрібні офіційні вимірювання геодезистів.</li>
+                </ul>
+              </div>
             </div>
+          </section>
+
+          <section class="grid-notes">
+            <div class="grid-notes-inner">
+              <div class="grid-notes-title">
+                Заміри, прив’язки, застереження
+              </div>
+
+              <div class="grid-notes-layout">
+                <div class="grid-note-block">
+                  <div class="grid-note-label">Заміри рулеткою / кроками</div>
+                  <div class="grid-note-value">
+                    Застосовувались для первинного наближення розмірів окремих об’єктів.
+                  </div>
+                  <div class="grid-note-extra">
+                    Точність обмежена, рекомендована перевірка приладам.
+                  </div>
+                </div>
+
+                <div class="grid-note-block">
+                  <div class="grid-note-label">Кадастрові та правові межі</div>
+                  <div class="grid-note-value">
+                    На цій схемі не відображені офіційні координати та поворотні точки з ДЗК.
+                  </div>
+                  <div class="grid-note-extra">
+                    Для юр. дій використовувати тільки офіційні витяги та плани.
+                  </div>
+                </div>
+
+                <div class="grid-note-block">
+                  <div class="grid-note-label">GeoJSON / координати</div>
+                  <div class="grid-note-value">
+                    Наближені, призначені для візуалізації та обговорення, а не для реєстраційних дій.
+                  </div>
+                  <div class="grid-note-extra">
+                    План ще в роботі, геометрія буде уточнюватися.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
 
-        <h2 style="margin-top: 40px;">Статистика по Hatski</h2>
-        <table>
-            <tr>
-                <th>Показник</th>
-                <th>Значення</th>
-                <th>Статус</th>
-            </tr>
-            <tr>
-                <td>Git комітів</td>
-                <td>2+</td>
-                <td>✅ Готово</td>
-            </tr>
-            <tr>
-                <td>HTML файлів</td>
-                <td>1</td>
-                <td>✅ Готово</td>
-            </tr>
-            <tr>
-                <td>Гілок проекту</td>
-                <td>plan-dilyanky</td>
-                <td>✅ Активна</td>
-            </tr>
-            <tr>
-                <td>Карта Leaflet</td>
-                <td>Интегрована</td>
-                <td>✅ Робить</td>
-            </tr>
-        </table>
+        <!-- Footer -->
+        <footer class="page-footer">
+          <div class="footer-left">
+            <span class="footer-pill">
+              <span class="footer-dot"></span>
+              Неформальна схема для внутрішнього користування
+            </span>
+          </div>
+          <div class="footer-right">
+            <span>Фактичні розміри та межі слід підтверджувати офіційними документами.</span>
+          </div>
+        </footer>
+      </div>
+    </section>
+  </div>
 
-        <div class="footer">
-            <p>Hatski Project | OlehCheff | GitHub Desktop Tutorial 2026 🚀</p>
-        </div>
-    </div>
+  <!-- Leaflet JS -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"
+    integrity="sha512-pKE1FESN2CHSgRNMs2/qs56/FhqAfqyc3btbPBnSukslL/kbPPSWTMU38VQNj1e4T5G8QKIPqCF2KxLrj78F7g=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script>
-        const map = L.map('map').setView([49.287303, 31.947427], 10);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap',
-            maxZoom: 19
-        }).addTo(map);
-        L.marker([49.287303, 31.947427]).addTo(map).bindPopup('<strong>Чerkasy, Ukraine</strong><br>Hatski Project').openPopup();
-    </script>
+  <script>
+    // [Неперевірено] Тут тимчасовий GeoJSON: заміниш на свій фінальний об’єкт
+    const plotData = {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "properties": {
+            "type": "plot",
+            "name": "Ділянка (умовний контур)"
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+              [31.94705806613111, 49.287670409829694],
+              [31.947293, 49.287670],
+              [31.947293, 49.28729378227529],
+              [31.94705806613111, 49.28729378227529],
+              [31.94705806613111, 49.287670409829694]
+            ]]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "type": "house",
+            "name": "Будинок (умовний)"
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+              [31.94710, 49.28763],
+              [31.94720, 49.28763],
+              [31.94720, 49.28756],
+              [31.94710, 49.28756],
+              [31.94710, 49.28763]
+            ]]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "type": "garage",
+            "name": "Гараж / хоз. будівля (умовна)"
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+              [31.94706, 49.28750],
+              [31.94713, 49.28750],
+              [31.94713, 49.28745],
+              [31.94706, 49.28745],
+              [31.94706, 49.28750]
+            ]]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "type": "tech",
+            "name": "Септик (умовне розташування)"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [31.94722, 49.28752]
+          }
+        }
+      ]
+    };
+
+    const map = L.map("map", {
+      zoomControl: true
+    });
+
+    const base = L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom: 20,
+        attribution: "&copy; OpenStreetMap contributors"
+      }
+    );
+
+    base.addTo(map);
+
+    function styleFeature(feature) {
+      const t = feature.properties?.type;
+      if (t === "plot") {
+        return {
+          color: "#16a34a",
+          weight: 2,
+          fillColor: "#22c55e",
+          fillOpacity: 0.18
+        };
+      }
+      if (t === "house") {
+        return {
+          color: "#ea580c",
+          weight: 2,
+          fillColor: "#f97316",
+          fillOpacity: 0.28
+        };
+      }
+      if (t === "garage") {
+        return {
+          color: "#0ea5e9",
+          weight: 2,
+          fillColor: "#38bdf8",
+          fillOpacity: 0.25
+        };
+      }
+      return {
+        color: "#a855f7",
+        weight: 2,
+        fillColor: "#a855f7",
+        fillOpacity: 0.2
+      };
+    }
+
+    function onEachFeature(feature, layer) {
+      const name = feature.properties?.name || "Об’єкт";
+      const type = feature.properties?.type || "other";
+
+      if (feature.geometry.type === "Point") {
+        layer.bindPopup(
+          `<strong>${name}</strong><br>Тип: ${type}`
+        );
+      } else {
+        layer.bindPopup(
+          `<strong>${name}</strong><br>Тип: ${type}<br><span style="font-size:11px;color:#9ca3af;">Геометрія умовна, для візуалізації.</span>`
+        );
+      }
+    }
+
+    const geoLayer = L.geoJSON(plotData, {
+      style: styleFeature,
+      onEachFeature: onEachFeature,
+      pointToLayer: function (feature, latlng) {
+        if (feature.properties?.type === "tech") {
+          return L.circleMarker(latlng, {
+            radius: 6,
+            color: "#06b6d4",
+            weight: 2,
+            fillColor: "#22d3ee",
+            fillOpacity: 0.8
+          });
+        }
+        return L.marker(latlng);
+      }
+    }).addTo(map);
+
+    if (geoLayer.getBounds().isValid()) {
+      map.fitBounds(geoLayer.getBounds(), {
+        padding: [30, 30]
+      });
+    } else {
+      map.setView([49.2875, 31.9471], 18);
+    }
+  </script>
 </body>
 </html>
