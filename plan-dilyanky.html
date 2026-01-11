@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hatski Project - Plan Dilyanky 2026</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 30px; }
+        h1 { color: #333; margin-bottom: 10px; text-align: center; font-size: 32px; }
+        .subtitle { color: #666; text-align: center; margin-bottom: 30px; font-size: 14px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0; }
+        #map { height: 400px; border-radius: 8px; border: 2px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #667eea; color: white; font-weight: bold; }
+        tr:hover { background: #f5f5f5; }
+        .info-box { background: #f0f4ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; }
+        .footer { text-align: center; margin-top: 30px; color: #999; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏞️ Hatski Project</h1>
+        <p class="subtitle">Черкаська область, Черкаси | 11.01.2026</p>
+        
+        <div class="info-box">
+            <strong>📌 Проект:</strong> Демонстрація Git та GitHub Desktop з візуалізацією地даних<br>
+            <strong>📍 Локація:</strong> Черкаська область, Черкаси<br>
+            <strong>👤 Автор:</strong> OlehCheff
+        </div>
+        
+        <div class="grid">
+            <div>
+                <h2>Карта регіону</h2>
+                <div id="map"></div>
+            </div>
+            <div>
+                <h2>Інформація про проект</h2>
+                <table>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значення</th>
+                    </tr>
+                    <tr>
+                        <td>Дата запуску</td>
+                        <td>11.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td>Статус</td>
+                        <td>✅ Активний</td>
+                    </tr>
+                    <tr>
+                        <td>Регіон</td>
+                        <td>Черкаська область</td>
+                    </tr>
+                    <tr>
+                        <td>Город</td>
+                        <td>Черкаси</td>
+                    </tr>
+                    <tr>
+                        <td>Версія</td>
+                        <td>1.0.0</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h2 style="margin-top: 40px;">Статистика по Hatski</h2>
+        <table>
+            <tr>
+                <th>Показник</th>
+                <th>Значення</th>
+                <th>Статус</th>
+            </tr>
+            <tr>
+                <td>Git комітів</td>
+                <td>2+</td>
+                <td>✅ Готово</td>
+            </tr>
+            <tr>
+                <td>HTML файлів</td>
+                <td>1</td>
+                <td>✅ Готово</td>
+            </tr>
+            <tr>
+                <td>Гілок проекту</td>
+                <td>plan-dilyanky</td>
+                <td>✅ Активна</td>
+            </tr>
+            <tr>
+                <td>Карта Leaflet</td>
+                <td>Интегрована</td>
+                <td>✅ Робить</td>
+            </tr>
+        </table>
+
+        <div class="footer">
+            <p>Hatski Project | OlehCheff | GitHub Desktop Tutorial 2026 🚀</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        const map = L.map('map').setView([48.97, 24.80], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 19
+        }).addTo(map);
+        L.marker([48.97, 24.80]).addTo(map).bindPopup('<strong>Чerkasy, Ukraine</strong><br>Hatski Project').openPopup();
+    </script>
+</body>
+</html>
